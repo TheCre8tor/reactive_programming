@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:rxdart/rxdart.dart';
 
 void main() {
@@ -39,7 +38,6 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
     // Dispose of the old subject every time widget is rebuild ->
     await subject.close();
-    print("Subject close");
   }
 
   @override
