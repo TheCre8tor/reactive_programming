@@ -20,6 +20,24 @@ class Api {
     if (cachedResult != null) {
       return cachedResult;
     }
+
+    // -> we dont have the values cached, let's call the API
+
+    // start by calling persons API
+    final persons = await _getJson("http://127.0.0.1:5500/apis/persons.json")
+        .then((value) => value.map((json) => Person.fromJson(json)));
+
+    // cache persons value ->
+    _person = persons.toList();
+
+    // start by calling animals API
+    final animals = await _getJson("http://127.0.0.1:5500/apis/animals.json")
+        .then((value) => value.map((json) => Animal.fromJson(json)));
+
+    // cache animals value ->
+    _animal = animals.toList();
+
+    return _extractThingsUsingSearchTerm(term) ?? [];
   }
 
   List<Thing>? _extractThingsUsingSearchTerm(SearchTerm term) {
