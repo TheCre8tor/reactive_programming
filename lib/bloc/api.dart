@@ -11,6 +11,8 @@ class Api {
   List<Animal>? _animal;
   List<Person>? _person;
 
+  Api();
+
   Future<List<Thing>> search(SearchTerm searchTerm) async {
     final term = searchTerm.trim().toLowerCase();
 
@@ -76,8 +78,6 @@ class Api {
         .then((response) => response.transform(utf8.decoder).join())
         .then((jsonString) => json.decode(jsonString) as List<dynamic>);
   }
-
-  Api();
 }
 
 extension TrimmedCaseInsensitiveContain on String {
