@@ -20,7 +20,9 @@ class SearchResultView extends StatelessWidget {
           final result = snapshot.data;
 
           if (result is SearchResultHasError) {
-            return const Text("Got error");
+            return const Text(
+              "[error]: server not responding, start the Live-Server",
+            );
           } else if (result is SearchResultLoading) {
             return Center(
               child: Column(
