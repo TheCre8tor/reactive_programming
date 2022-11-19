@@ -22,25 +22,27 @@ class MyApp extends StatelessWidget {
 }
 
 void testIt() async {
+  // streamA | ---- 0 ---- 1 ---- 2 ---- 3 ---- 4 ---- |
+  // take(3)
+  // result | ---- 0 ---- 1 ---- 2 |
+
+  /* 
+    final result = foo  // Stream-1
+      .take(3)          // Stream-2
+      .debounce()       // Stream-3
+      .merge()          // Stream-4
+      .concat()         // Stream-5
+   */
+
   final streamA = Stream.periodic(
     const Duration(seconds: 1),
     (count) => "Stream 1, count = $count",
-  );
+  ).take(3);
 
   final streamB = Stream.periodic(
     const Duration(seconds: 3),
     (count) => "Stream 2, count = $count",
   );
-
-  final combined = Rx.combineLatest2(
-    streamA,
-    streamB,
-    (one, two) => "One = ($one), Two = ($two)",
-  );
-
-  await for (final value in combined) {
-    value.log();
-  }
 }
 
 class HomePage extends StatelessWidget {
