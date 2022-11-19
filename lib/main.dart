@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:rxdart/rxdart.dart';
 
 import 'view/home_page.dart';
 
 void main() {
   runApp(const MyApp());
 }
+
+/* Start the live-server everytime you run this project */
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
