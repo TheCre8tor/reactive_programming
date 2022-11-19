@@ -33,6 +33,6 @@ class Animal extends Thing {
 
   @override
   String toString() {
-    return "Animal($name, $type)";
+    return "Animal, name: $name, type: $type";
   }
 }
