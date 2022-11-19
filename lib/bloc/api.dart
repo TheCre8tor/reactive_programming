@@ -7,6 +7,12 @@ import 'package:reactive_programming/models/thing.dart';
 
 typedef SearchTerm = String;
 
+extension TrimmedCaseInsensitiveContain on String {
+  bool trimedContains(String other) {
+    return trim().toLowerCase().contains(other.trim().toLowerCase());
+  }
+}
+
 class Api {
   List<Animal>? _animal;
   List<Person>? _person;
@@ -77,11 +83,5 @@ class Api {
         .then((req) => req.close())
         .then((response) => response.transform(utf8.decoder).join())
         .then((jsonString) => json.decode(jsonString) as List<dynamic>);
-  }
-}
-
-extension TrimmedCaseInsensitiveContain on String {
-  bool trimedContains(String other) {
-    return trim().toLowerCase().contains(other.trim().toLowerCase());
   }
 }

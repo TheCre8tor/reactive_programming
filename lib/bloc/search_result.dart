@@ -25,7 +25,7 @@ class SearchResultHasError extends SearchResult {
 
 @immutable
 class SearchResultWithResult extends SearchResult {
-  final List<Thing> result;
+  final List<Thing> results;
 
-  const SearchResultWithResult(this.result);
+  const SearchResultWithResult(this.results);
 }

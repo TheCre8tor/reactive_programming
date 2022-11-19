@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:rxdart/rxdart.dart';
+
+import 'view/home_page.dart';
 
 void main() {
   runApp(const MyApp());
 }
+
+/* Start the live-server everytime you run this project */
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -16,60 +19,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
-
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  late final BehaviorSubject<String> subject;
-
-  @override
-  void initState() {
-    super.initState();
-    // Create our behavior subject every time widget is rebuild ->
-    subject = BehaviorSubject<String>();
-  }
-
-  @override
-  void dispose() async {
-    super.dispose();
-    // Dispose of the old subject every time widget is rebuild ->
-    await subject.close();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(25),
-          child: Column(
-            children: [
-              StreamBuilder(
-                stream: subject.stream.distinct().debounceTime(
-                      const Duration(seconds: 1),
-                    ),
-                initialData: "Please start typing...",
-                builder: ((context, snapshot) {
-                  return Text(snapshot.requireData);
-                }),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 10),
-                child: TextField(
-                  onChanged: subject.sink.add,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 /* BehaviourSubject is a stream that holds on
  * to its last value and it will provide the value

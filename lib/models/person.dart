@@ -16,6 +16,6 @@ class Person extends Thing {
 
   @override
   String toString() {
-    return "Person($name, $age)";
+    return "Person, name: $name, age: $age";
   }
 }
