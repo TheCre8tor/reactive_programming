@@ -10,8 +10,6 @@ void main() {
   runApp(const MyApp());
 }
 
-/* Start the live-server everytime you run this project */
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -55,15 +53,3 @@ class HomePage extends StatelessWidget {
     return Container();
   }
 }
-
-
-/* BehaviourSubject is a stream that holds on
- * to its last value and it will provide the value
- * to any new listeners as well as any existen 
- * listeners. 
- * 
- * BehaviorSubject as the permission to read and write */
-
-/* A stream -> readonly
-   A sink -> write only
-   A SreamController -> read and write */
