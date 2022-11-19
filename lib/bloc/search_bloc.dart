@@ -20,6 +20,11 @@ class SearchBloc {
   factory SearchBloc({required Api api}) {
     final textChanges = BehaviorSubject<String>();
 
+    // The .seeded operator set the default search value to a
+    // and return every items that contains a.
+    // final textChanges = BehaviorSubject<String>.seeded("a");
+    // print(textChanges.value.runtimeType);
+
     final results = textChanges
         .distinct()
         .debounceTime(const Duration(milliseconds: 300))
@@ -30,9 +35,11 @@ class SearchBloc {
       } else {
         return Rx.fromCallable(() => api.search(searchTerm))
             .delay(const Duration(seconds: 1))
-            .map((items) => items.isEmpty
-                ? const SearchResultNoResult()
-                : SearchResultWithResult(items))
+            .map((items) {
+              return items.isEmpty
+                  ? const SearchResultNoResult()
+                  : SearchResultWithResult(items);
+            })
             .startWith(const SearchResultLoading())
             .onErrorReturnWith(
               (error, _) => SearchResultHasError(error),
