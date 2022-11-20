@@ -22,32 +22,20 @@ class MyApp extends StatelessWidget {
 }
 
 void testIt() async {
-  // streamA | ---- 0 ---- 1 ---- 2 ---- 3 ---- 4 ---- |
-  // take(3)
-  // result | ---- 0 ---- 1 ---- 2 |
-
-  /*  
-    final result = foo  // Stream-1
-      .take(3)          // Stream-2
-      .debounce()       // Stream-3
-      .merge()          // Stream-4
-      .concat()         // Stream-5
-   */
-
-  // We are picking only the first 3 elements from streamA ->
   final streamA = Stream.periodic(
-    const Duration(seconds: 1),
+    const Duration(seconds: 3),
     (count) => "Stream 1, count = $count",
-  ).take(3);
+  );
 
   final streamB = Stream.periodic(
-    const Duration(seconds: 3),
+    const Duration(seconds: 1),
     (count) => "Stream 2, count = $count",
   );
 
-  // Concatination is great for API calls
-  // Fire and forget APIs one after each other ->
-  final result = streamA.concatWith([streamB]);
+  // Work similarly to git merge ->
+  // Merge is great for immediate response to UI events.
+  // For instance in a ListView of check boxes ->
+  final result = streamA.mergeWith([streamB]);
 
   await for (final value in result) {
     value.log();
