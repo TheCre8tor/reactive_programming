@@ -35,7 +35,11 @@ void testIt() async {
   // Work similarly to git merge ->
   // Merge is great for immediate response to UI events.
   // For instance in a ListView of check boxes ->
-  final result = streamA.mergeWith([streamB]);
+  final result = Rx.zip2(
+    streamA,
+    streamB,
+    (a, b) => "Zipped result, A = ($a), B =($b)",
+  );
 
   await for (final value in result) {
     value.log();
