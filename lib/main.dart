@@ -21,38 +21,72 @@ class MyApp extends StatelessWidget {
   }
 }
 
-void testIt() async {
-  final streamA = Stream.periodic(
-    const Duration(seconds: 3),
-    (count) => "Stream 1, count = $count",
-  );
-
-  final streamB = Stream.periodic(
-    const Duration(seconds: 1),
-    (count) => "Stream 2, count = $count",
-  );
-
-  // Work similarly to git merge ->
-  // Merge is great for immediate response to UI events.
-  // For instance in a ListView of check boxes ->
-  final result = Rx.zip2(
-    streamA,
-    streamB,
-    (a, b) => "Zipped result, A = ($a), B =($b)",
-  );
-
-  await for (final value in result) {
-    value.log();
-  }
-}
-
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    testIt();
+  State<HomePage> createState() => _HomePageState();
+}
 
-    return Container();
+class _HomePageState extends State<HomePage> {
+  late final BehaviorSubject<DateTime> subject;
+  late final Stream<String> streamOfStrings;
+
+  @override
+  void initState() {
+    super.initState();
+
+    subject = BehaviorSubject<DateTime>();
+
+    // Switch map dispose previous subscription
+    // and create a new one.
+    streamOfStrings = subject.switchMap(
+      (dateTime) => Stream.periodic(
+        const Duration(seconds: 1),
+        (count) => "Stream count = $count, dateTime = $dateTime",
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    subject.close();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Home Page"),
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              StreamBuilder(
+                stream: streamOfStrings,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    final string = snapshot.requireData;
+                    return Text(string);
+                  }
+
+                  return const Text("Waiting for the button to be pressed!");
+                },
+              ),
+              TextButton(
+                onPressed: () {
+                  subject.add(DateTime.now());
+                },
+                child: const Text("Start the stream"),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
