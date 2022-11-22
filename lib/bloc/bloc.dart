@@ -1,51 +1,51 @@
 import 'package:flutter/foundation.dart';
-import 'package:reactive_programming/model/thing.dart';
 import 'package:rxdart/rxdart.dart';
 
 @immutable
 class Bloc {
-  final Sink<TypeOfThing?> setTypeOfThing; // right-only
-  final Stream<TypeOfThing?> currentTypeOfThing; // read-only
-  final Stream<Iterable<Thing>> things; // read-only
+  final Sink<String?> setFirstName; // write-only
+  final Sink<String?> setLastName; // write-only
+  final Stream<String> fullName; // read-only
 
-  /* The reason why we create a private constructor
-     is because the UI should not care about creating
-     the bloc using the parameters. It's not the job
-     of the UI to provide the arguments to the bloc,
-     it's the bloc factory constructors job. */
   const Bloc._({
-    required this.setTypeOfThing,
-    required this.currentTypeOfThing,
-    required this.things,
+    required this.setFirstName,
+    required this.setLastName,
+    required this.fullName,
   });
 
   void dispose() {
-    setTypeOfThing.close();
+    setFirstName.close();
+    setLastName.close();
   }
 
-  factory Bloc({required Iterable<Thing> things}) {
-    final typeOfThingSubject = BehaviorSubject<TypeOfThing?>();
+  factory Bloc() {
+    final firstNameSubject = BehaviorSubject<String?>();
+    final lastNameSubject = BehaviorSubject<String?>();
 
-    final filteredThings = typeOfThingSubject
-        .debounceTime(const Duration(milliseconds: 300))
-        .map<Iterable<Thing>>((typeOfThing) => _mapThings(typeOfThing, things))
-        .startWith(things);
+    /* Our behaviorSubject has no value in it unless
+       we provide value to it. 
+       
+       CombineLatest always requires one of it parameter
+       to have data unless the map function wont be called.*/
+    final Stream<String> fullName = Rx.combineLatest2(
+      firstNameSubject.startWith(null),
+      lastNameSubject.startWith(null),
+      (String? firstName, String? lastName) {
+        if (firstName != null &&
+            firstName.isNotEmpty &&
+            lastName != null &&
+            lastName.isNotEmpty) {
+          return "$firstName $lastName";
+        } else {
+          return "Both first and last name must be provided";
+        }
+      },
+    );
 
     return Bloc._(
-      setTypeOfThing: typeOfThingSubject.sink,
-      currentTypeOfThing: typeOfThingSubject.stream,
-      things: filteredThings,
+      setFirstName: firstNameSubject.sink,
+      setLastName: lastNameSubject.sink,
+      fullName: fullName,
     );
-  }
-
-  static Iterable<Thing> _mapThings(
-    TypeOfThing? typeOfThing,
-    Iterable<Thing> things,
-  ) {
-    if (typeOfThing != null) {
-      return things.where((thing) => thing.type == typeOfThing);
-    } else {
-      return things;
-    }
   }
 }
