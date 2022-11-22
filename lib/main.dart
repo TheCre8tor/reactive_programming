@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:rxdart/rxdart.dart';
 import "dart:developer" as devtools show log;
+
+import 'package:reactive_programming/bloc/bloc.dart';
+import 'package:reactive_programming/constants/list_of_things.dart';
+import 'package:reactive_programming/model/thing.dart';
 
 extension Log on Object {
   void log() => devtools.log(toString());
@@ -29,59 +32,70 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  late final BehaviorSubject<DateTime> subject;
-  late final Stream<String> streamOfStrings;
+  late final Bloc bloc;
 
   @override
   void initState() {
     super.initState();
-
-    subject = BehaviorSubject<DateTime>();
-
-    // Switch map dispose previous subscription
-    // and create a new one.
-    streamOfStrings = subject.switchMap(
-      (dateTime) => Stream.periodic(
-        const Duration(seconds: 1),
-        (count) => "Stream count = $count, dateTime = $dateTime",
-      ),
-    );
+    bloc = Bloc(things: things);
   }
 
   @override
   void dispose() {
     super.dispose();
-    subject.close();
+    bloc.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Home Page"),
+        title: const Text("Filterchip with RxDart"),
       ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               StreamBuilder(
-                stream: streamOfStrings,
+                stream: bloc.currentTypeOfThing,
                 builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    final string = snapshot.requireData;
-                    return Text(string);
-                  }
+                  final selectedTypeOfThing = snapshot.data;
 
-                  return const Text("Waiting for the button to be pressed!");
+                  return Wrap(
+                    children: TypeOfThing.values.map((typeOfThing) {
+                      return FilterChip(
+                        label: Text(typeOfThing.name),
+                        selected: typeOfThing == selectedTypeOfThing,
+                        selectedColor: Colors.blueAccent[100],
+                        onSelected: (selected) {
+                          final type = selected ? typeOfThing : null;
+                          bloc.setTypeOfThing.add(type);
+                        },
+                      );
+                    }).toList(),
+                  );
                 },
               ),
-              TextButton(
-                onPressed: () {
-                  subject.add(DateTime.now());
-                },
-                child: const Text("Start the stream"),
+              Expanded(
+                child: StreamBuilder<Iterable<Thing>>(
+                  stream: bloc.things,
+                  builder: ((context, snapshot) {
+                    final things = snapshot.data ?? [];
+
+                    return ListView.builder(
+                      itemCount: things.length,
+                      itemBuilder: (context, idx) {
+                        final thing = things.elementAt(idx);
+
+                        return ListTile(
+                          title: Text(thing.name),
+                          subtitle: Text(thing.type.name),
+                        );
+                      },
+                    );
+                  }),
+                ),
               ),
             ],
           ),
