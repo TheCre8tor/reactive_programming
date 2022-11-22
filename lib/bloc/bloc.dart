@@ -22,11 +22,8 @@ class Bloc {
     final firstNameSubject = BehaviorSubject<String?>();
     final lastNameSubject = BehaviorSubject<String?>();
 
-    /* Our behaviorSubject has no value in it unless
-       we provide value to it. 
-       
-       CombineLatest always requires one of it parameter
-       to have data unless the map function wont be called.*/
+    /* With combineLatest the Stream will not emit until 
+       all streams have emitted at least one item.*/
     final Stream<String> fullName = Rx.combineLatest2(
       firstNameSubject.startWith(null),
       lastNameSubject.startWith(null),
