@@ -1,12 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import "dart:developer" as devtools show log;
 
-import 'package:reactive_programming/bloc/bloc.dart';
-import 'package:reactive_programming/core/async_snapshot_builder.dart';
-
-extension Log on Object {
-  void log() => devtools.log(toString());
-}
+import 'package:flutter/services.dart';
+import "package:rxdart/rxdart.dart";
 
 void main() {
   runApp(const MyApp());
@@ -23,60 +20,55 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
-
-  @override
-  State<HomePage> createState() => _HomePageState();
+Stream<String> getNames({required String filePath}) {
+  final names = rootBundle.loadString(filePath);
+  return Stream.fromFuture(names).transform(const LineSplitter());
 }
 
-class _HomePageState extends State<HomePage> {
-  late final Bloc bloc;
-  @override
-  void initState() {
-    super.initState();
-    bloc = Bloc();
-  }
+Stream<String> getAllNames() {
+  final catNames = getNames(filePath: "assets/texts/cats.txt");
+  final dogNames = getNames(filePath: "assets/texts/dogs.txt");
+  return catNames.concatWith([dogNames]).delay(const Duration(seconds: 3));
+}
 
-  @override
-  void dispose() {
-    super.dispose();
-    bloc.dispose();
-  }
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("CombineLatest with RxDart"),
+        title: const Text("concat with RxDart"),
       ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: [
-              const SizedBox(height: 25),
-              TextField(
-                decoration: const InputDecoration(
-                  hintText: "Enter first name here...",
-                ),
-                onChanged: bloc.setFirstName.add,
-              ),
-              const SizedBox(height: 25),
-              TextField(
-                decoration: const InputDecoration(
-                  hintText: "Enter last name here...",
-                ),
-                onChanged: bloc.setLastName.add,
-              ),
-              const SizedBox(height: 25),
-              AsyncSnapshotBuilder<String>(
-                stream: bloc.fullName,
-                onActive: ((context, value) {
-                  return Text(value ?? '');
-                }),
-              )
-            ],
+          child: FutureBuilder<List<String>>(
+            future: getAllNames().toList(),
+            builder: ((context, snapshot) {
+              switch (snapshot.connectionState) {
+                case ConnectionState.none:
+                case ConnectionState.waiting:
+                case ConnectionState.active:
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                case ConnectionState.done:
+                  final names = snapshot.requireData;
+
+                  return ListView.separated(
+                    separatorBuilder: (_, __) => const Divider(
+                      color: Colors.black,
+                    ),
+                    itemCount: names.length,
+                    itemBuilder: (context, idx) {
+                      return ListTile(
+                        title: Text(names[idx]),
+                      );
+                    },
+                  );
+              }
+            }),
           ),
         ),
       ),
