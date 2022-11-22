@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import "dart:developer" as devtools show log;
 
 import 'package:reactive_programming/bloc/bloc.dart';
-import 'package:reactive_programming/constants/list_of_things.dart';
-import 'package:reactive_programming/model/thing.dart';
+import 'package:reactive_programming/core/async_snapshot_builder.dart';
 
 extension Log on Object {
   void log() => devtools.log(toString());
@@ -33,11 +32,10 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late final Bloc bloc;
-
   @override
   void initState() {
     super.initState();
-    bloc = Bloc(things: things);
+    bloc = Bloc();
   }
 
   @override
@@ -50,53 +48,34 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Filterchip with RxDart"),
+        title: const Text("CombineLatest with RxDart"),
       ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
-              StreamBuilder(
-                stream: bloc.currentTypeOfThing,
-                builder: (context, snapshot) {
-                  final selectedTypeOfThing = snapshot.data;
-
-                  return Wrap(
-                    children: TypeOfThing.values.map((typeOfThing) {
-                      return FilterChip(
-                        label: Text(typeOfThing.name),
-                        selected: typeOfThing == selectedTypeOfThing,
-                        selectedColor: Colors.blueAccent[100],
-                        onSelected: (selected) {
-                          final type = selected ? typeOfThing : null;
-                          bloc.setTypeOfThing.add(type);
-                        },
-                      );
-                    }).toList(),
-                  );
-                },
-              ),
-              Expanded(
-                child: StreamBuilder<Iterable<Thing>>(
-                  stream: bloc.things,
-                  builder: ((context, snapshot) {
-                    final things = snapshot.data ?? [];
-
-                    return ListView.builder(
-                      itemCount: things.length,
-                      itemBuilder: (context, idx) {
-                        final thing = things.elementAt(idx);
-
-                        return ListTile(
-                          title: Text(thing.name),
-                          subtitle: Text(thing.type.name),
-                        );
-                      },
-                    );
-                  }),
+              const SizedBox(height: 25),
+              TextField(
+                decoration: const InputDecoration(
+                  hintText: "Enter first name here...",
                 ),
+                onChanged: bloc.setFirstName.add,
               ),
+              const SizedBox(height: 25),
+              TextField(
+                decoration: const InputDecoration(
+                  hintText: "Enter last name here...",
+                ),
+                onChanged: bloc.setLastName.add,
+              ),
+              const SizedBox(height: 25),
+              AsyncSnapshotBuilder<String>(
+                stream: bloc.fullName,
+                onActive: ((context, value) {
+                  return Text(value ?? '');
+                }),
+              )
             ],
           ),
         ),
