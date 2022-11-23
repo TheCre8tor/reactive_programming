@@ -105,6 +105,10 @@ class AppBloc {
     _authBloc.logout.add(null);
   }
 
+  void deleteAccount() {
+    // TODO: we haven't done the delete account yet.
+  }
+
   // Contact usecases ->
   Stream<Iterable<Contact>> get contacts => _contactBloc.contacts;
 
