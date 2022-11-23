@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart' show immutable;
 import 'package:reactive_programming/blocs/auth_bloc/auth_error.dart';
+import 'package:reactive_programming/blocs/bloc.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -55,7 +56,7 @@ extension Loading<E> on Stream<E> {
 }
 
 @immutable
-class AuthBloc {
+class AuthBloc implements Bloc {
   // read-only properties ->
   final Stream<AuthStatus> authStatus;
   final Stream<AuthError?> authError;
@@ -76,6 +77,13 @@ class AuthBloc {
     required this.register,
     required this.logout,
   });
+
+  @override
+  void dispose() {
+    login.close();
+    register.close();
+    logout.close();
+  }
 
   factory AuthBloc() {
     final isLoading = BehaviorSubject<bool>();
