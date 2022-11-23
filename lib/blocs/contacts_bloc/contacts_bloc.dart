@@ -37,6 +37,8 @@ class ContactBloc implements Bloc {
     userId.close();
     createContact.close();
     deleteContact.close();
+    _createContactSubscription.cancel();
+    _deleteContactSubscription.cancel();
   }
 
   const ContactBloc._({
