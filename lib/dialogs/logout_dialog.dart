@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:reactive_programming/dialogs/generic_dialog.dart';
 
-Future<bool> showDeleteContactDialog(BuildContext context) {
+Future<bool> showLogoutDialog({required BuildContext context}) {
   final dialogResponse = showGenericDialog(
     context: context,
-    title: "Delete contact",
-    content:
-        "Are you sure you want to delete your contact? You cannot undo this operation!",
+    title: "Log out",
+    content: "Are you sure you want to log out",
     optionBuilder: () {
       return {
         "Cancel": false,
-        "Delete contact": true,
+        "Log out": true,
       };
     },
   );
