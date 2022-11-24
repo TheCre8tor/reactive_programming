@@ -42,6 +42,7 @@ class _NewContactViewState extends State<NewContactView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: const Text("Create a new contact"),
         leading: IconButton(
           onPressed: widget.goBack,
           icon: const Icon(Icons.close),
@@ -88,7 +89,11 @@ class _NewContactViewState extends State<NewContactView> {
                     final phoneNumber = phoneNumberController.text;
 
                     // create contact ->
-                    widget.createContact(firstName, lastName, phoneNumber);
+                    widget.createContact(
+                      firstName: firstName,
+                      lastName: lastName,
+                      phoneNumber: phoneNumber,
+                    );
                     // after creating a contact, go
                     // back to the previous screen
                     widget.goBack();

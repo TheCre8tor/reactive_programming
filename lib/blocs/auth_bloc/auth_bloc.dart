@@ -67,6 +67,7 @@ class AuthBloc implements Bloc {
   final Sink<LoginCommand> login;
   final Sink<RegisterCommand> register;
   final Sink<void> logout;
+  final Sink<void> deleteAccount;
 
   const AuthBloc._({
     required this.authStatus,
@@ -76,6 +77,7 @@ class AuthBloc implements Bloc {
     required this.login,
     required this.register,
     required this.logout,
+    required this.deleteAccount,
   });
 
   @override
@@ -83,6 +85,7 @@ class AuthBloc implements Bloc {
     login.close();
     register.close();
     logout.close();
+    deleteAccount.close();
   }
 
   factory AuthBloc() {
@@ -122,10 +125,7 @@ class AuthBloc implements Bloc {
       } catch (_) {
         return const AuthErrorUnknown();
       }
-    });
-
-    // set loading to false ->
-    loginError.setLoadingTo(false, onSink: isLoading.sink);
+    }).setLoadingTo(false, onSink: isLoading.sink);
 
     // ----------------------
 
@@ -146,10 +146,7 @@ class AuthBloc implements Bloc {
       } catch (_) {
         return const AuthErrorUnknown();
       }
-    });
-
-    // set loading to false ->
-    registerError.setLoadingTo(false, onSink: isLoading.sink);
+    }).setLoadingTo(false, onSink: isLoading.sink);
 
     // -----------------------
 
@@ -166,10 +163,25 @@ class AuthBloc implements Bloc {
       } catch (_) {
         return const AuthErrorUnknown();
       }
-    });
+    }).setLoadingTo(false, onSink: isLoading.sink);
 
-    // set loading to false ->
-    logoutError.setLoadingTo(false, onSink: isLoading.sink);
+    final deleteAccount = BehaviorSubject<void>();
+
+    final processAccountDelete = deleteAccount.setLoadingTo(
+      true,
+      onSink: isLoading.sink,
+    );
+
+    final deleteAccountError = processAccountDelete.asyncMap((_) async {
+      try {
+        await FirebaseAuth.instance.currentUser?.delete();
+        return null;
+      } on FirebaseAuthException catch (error) {
+        return AuthError.from(error);
+      } catch (_) {
+        return const AuthErrorUnknown();
+      }
+    }).setLoadingTo(false, onSink: isLoading.sink);
 
     // -----------------------
     // auth error = (login error + register error + logout error)
@@ -177,6 +189,7 @@ class AuthBloc implements Bloc {
       loginError,
       registerError,
       logoutError,
+      deleteAccountError,
     ]);
 
     return AuthBloc._(
@@ -187,6 +200,7 @@ class AuthBloc implements Bloc {
       login: login.sink,
       register: register.sink,
       logout: logout.sink,
+      deleteAccount: deleteAccount.sink,
     );
   }
 }
