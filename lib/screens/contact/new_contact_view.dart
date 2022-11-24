@@ -80,6 +80,7 @@ class _NewContactViewState extends State<NewContactView> {
                   keyboardType: TextInputType.phone,
                   keyboardAppearance: Brightness.dark,
                 ),
+                const SizedBox(height: 25),
                 TextButton(
                   onPressed: () {
                     final firstName = firstNameController.text;
