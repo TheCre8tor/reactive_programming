@@ -7,6 +7,7 @@ import 'package:reactive_programming/blocs/contacts_bloc/contacts_bloc.dart';
 import 'package:reactive_programming/blocs/views_bloc/current_view.dart';
 import 'package:reactive_programming/blocs/views_bloc/views_bloc.dart';
 import 'package:reactive_programming/models/contact.dart';
+import 'package:rxdart/rxdart.dart';
 
 @immutable
 class AppBloc {
@@ -32,7 +33,54 @@ class AppBloc {
         _contactBloc = contactBloc,
         _userIdChanges = userIdChanges;
 
-  factory AppBloc() {}
+  void dispose() {
+    _authBloc.dispose();
+    _viewsBloc.dispose();
+    _contactBloc.dispose();
+    _userIdChanges.cancel();
+  }
+
+  factory AppBloc() {
+    final authBloc = AuthBloc();
+    final viewsBloc = ViewsBloc();
+    final contactsBloc = ContactBloc();
+
+    // pass userId from auth bloc into the contacts bloc ->
+    final userIdChanges = authBloc.userId.listen((String? userId) {
+      contactsBloc.userId.add(userId);
+    });
+
+    // calculate the current view
+    final authStatus = authBloc.authStatus.map;
+    final Stream<CurrentView> authCurrentView = authStatus((status) {
+      if (status is AuthStatusLoggedIn) {
+        return CurrentView.contactList;
+      }
+
+      return CurrentView.login;
+    });
+
+    // current view
+    final Stream<CurrentView> currentView = Rx.merge([
+      authCurrentView,
+      viewsBloc.currentView,
+    ]);
+
+    final Stream<bool> isLoading = Rx.merge([
+      authBloc.isLoading,
+      // merge all is loading right here.
+    ]);
+
+    return AppBloc._(
+      authBloc: authBloc,
+      viewsBloc: viewsBloc,
+      contactBloc: contactsBloc,
+      currentView: currentView,
+      isLoading: isLoading.asBroadcastStream(),
+      authError: authBloc.authError.asBroadcastStream(),
+      userIdChanges: userIdChanges,
+    );
+  }
 
   // Auth usecases ->
   void register(String email, String password) {
@@ -55,6 +103,11 @@ class AppBloc {
 
   void logout() {
     _authBloc.logout.add(null);
+  }
+
+  void deleteAccount() {
+    _contactBloc.deleteAllContacts.add(null);
+    _authBloc.deleteAccount.add(null);
   }
 
   // Contact usecases ->

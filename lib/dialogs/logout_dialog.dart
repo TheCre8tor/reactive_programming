@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:reactive_programming/dialogs/generic_dialog.dart';
 
-Future<bool> showLogoutDialog({required BuildContext context}) {
+Future<bool> showLogoutDialog(BuildContext context) {
   final dialogResponse = showGenericDialog(
     context: context,
     title: "Log out",

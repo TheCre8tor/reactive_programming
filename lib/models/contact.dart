@@ -26,8 +26,7 @@ class Contact {
         lastName = json[_Keys.lastNameKey] as String,
         phoneNumber = json[_Keys.phoneNumber] as String;
 
-  @override
-  String toString() => "$firstName $lastName";
+  String get fullName => "$firstName $lastName";
 }
 
 extension Data on Contact {

@@ -24,6 +24,7 @@ class ContactBloc implements Bloc {
   final Sink<String?> userId;
   final Sink<Contact> createContact;
   final Sink<Contact> deleteContact;
+  final Sink<void> deleteAllContacts;
 
   // read-only ->
   final Stream<Iterable<Contact>> contacts;
@@ -31,12 +32,17 @@ class ContactBloc implements Bloc {
   // subscribing to a value that comes from a stream ->
   final StreamSubscription<void> _createContactSubscription;
   final StreamSubscription<void> _deleteContactSubscription;
+  final StreamSubscription<void> _deleteAllContactsSubscription;
 
   @override
   void dispose() {
     userId.close();
     createContact.close();
     deleteContact.close();
+    deleteAllContacts.close();
+    _createContactSubscription.cancel();
+    _deleteContactSubscription.cancel();
+    _deleteAllContactsSubscription.cancel();
   }
 
   const ContactBloc._({
@@ -44,10 +50,13 @@ class ContactBloc implements Bloc {
     required this.createContact,
     required this.deleteContact,
     required this.contacts,
+    required this.deleteAllContacts,
     required StreamSubscription<void> createContactSubscription,
     required StreamSubscription<void> deleteContactSubscription,
+    required StreamSubscription<void> deleteAllContactsSubscription,
   })  : _createContactSubscription = createContactSubscription,
-        _deleteContactSubscription = deleteContactSubscription;
+        _deleteContactSubscription = deleteContactSubscription,
+        _deleteAllContactsSubscription = deleteAllContactsSubscription;
 
   factory ContactBloc() {
     final backend = FirebaseFirestore.instance;
@@ -110,14 +119,34 @@ class ContactBloc implements Bloc {
           (event) {},
         );
 
+    // delete all contacts
+    final deleteAllContacts = BehaviorSubject<void>();
+
+    final StreamSubscription<void> deleteAllContactsSubscription =
+        deleteAllContacts
+            .switchMap(
+              (_) => userId.take(1).unwrap().asyncMap((id) {
+                return _deleteAllContactsService(backend, id);
+              }).switchMap((collection) {
+                return Stream.fromFutures(collection.docs.map(
+                  (doc) => doc.reference.delete(),
+                ));
+              }),
+            )
+            .listen(
+              (event) {},
+            );
+
     // create ContactBloc
     return ContactBloc._(
       userId: userId.sink,
       createContact: createContact.sink,
       deleteContact: deleteContact.sink,
+      deleteAllContacts: deleteAllContacts.sink,
       contacts: contacts,
       createContactSubscription: createContactSubscription,
       deleteContactSubscription: deleteContactSubscription,
+      deleteAllContactsSubscription: deleteAllContactsSubscription,
     );
   }
 
@@ -129,5 +158,12 @@ class ContactBloc implements Bloc {
   static Future<void> _deleteContactService(
       FirebaseFirestore backend, String userId, Contact contact) {
     return backend.collection(userId).doc(contact.id).delete();
+  }
+
+  static Future<QuerySnapshot<Map<String, dynamic>>> _deleteAllContactsService(
+    FirebaseFirestore backend,
+    String userId,
+  ) {
+    return backend.collection(userId).get();
   }
 }
